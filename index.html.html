@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科研图片查重检索系统 - 专为医护科研人员设计</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #2563EB;
+            --color-primary-dark: #1D4ED8;
+            --color-secondary: #0EA5E9;
+            --color-tertiary: #10B981;
+            --color-warning: #F59E0B;
+            --color-danger: #EF4444;
+            --color-light: #F3F4F6;
+            --color-dark: #1F2937;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--color-dark);
+        }
+        
+        .gradient-primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .card-shadow:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .upload-zone {
+            border: 2px dashed #CBD5E1;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--color-primary);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        
+        .similarity-low { color: #10B981; }
+        .similarity-medium { color: #F59E0B; }
+        .similarity-high { color: #EF4444; }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        
+        .progress-bar {
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background-color: var(--color-primary);
+            transition: all 0.2s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .nav-link.active::after {
+            width: 100%;
+        }
+        
+        .nav-link.active {
+            color: var(--color-primary);
+        }
+        
+        .tab-active {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center text-white">
+                            <i class="ri-microscope-line text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-bold">科研图片查重检索系统</h1>
+                            <p class="text-xs sm:text-sm text-gray-500">专为医护科研人员设计</p>
+                        </div>
+                    </div>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#" class="nav-link active text-gray-700 hover:text-gray-900">首页</a>
+                    <a href="#" class="nav-link text-gray-700 hover:text-gray-900">使用说明</a>
+                    <a href="#" class="nav-link text-gray-700 hover:text-gray-900">API接口</a>
+                    <a href="#" class="nav-link text-gray-700 hover:text-gray-900">帮助中心</a>
+                </nav>
+                <div class="hidden md:flex items-center space-x-4">
+                    <div class="relative">
+                        <button class="flex items-center text-gray-700 hover:text-gray-900">
+                            <span>王教授</span>
+                            <i class="ri-arrow-down-s-line ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="h-6 w-px bg-gray-200"></div>
+                    <button class="p-2 text-gray-500 hover:text-gray-700 relative">
+                        <i class="ri-notification-3-line text-xl"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+                <div class="md:hidden">
+                    <button class="text-gray-500">
+                        <i class="ri-menu-line text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Page Title & Description -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold mb-2">图像查重检索</h2>
+            <p class="text-gray-600">上传科研图像进行查重分析，检测图像相似度并生成详细报告</p>
+        </div>
+        
+        <!-- Steps Navigation -->
+        <div class="bg-white rounded-xl p-6 shadow-sm mb-8">
+            <div class="flex flex-wrap items-center justify-between">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">
+                        <span>1</span>
+                    </div>
+                    <div>
+                        <h3 class="font-medium">上传图像</h3>
+                        <p class="text-xs text-gray-500">支持多种医学图像格式</p>
+                    </div>
+                </div>
+                <div class="hidden md:block w-16 h-0.5 bg-gray-200">
+                    <div class="h-full bg-blue-500" style="width: 0%"></div>
+                </div>
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center mr-3">
+                        <span>2</span>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-gray-500">分析处理</h3>
+                        <p class="text-xs text-gray-500">特征提取与相似度计算</p>
+                    </div>
+                </div>
+                <div class="hidden md:block w-16 h-0.5 bg-gray-200">
+                    <div class="h-full bg-blue-500" style="width: 0%"></div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center mr-3">
+                        <span>3</span>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-gray-500">报告生成</h3>
+                        <p class="text-xs text-gray-500">查看详细分析结果</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Upload Section -->
+        <div class="mb-8" id="upload-section">
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Content Type Selection -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium mb-4">选择查重类型</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="border border-blue-500 bg-blue-50 rounded-lg p-4 relative">
+                                <input type="radio" name="content-type" class="absolute opacity-0" checked>
+                                <div class="flex items-start">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3 flex-shrink-0">
+                                        <i class="ri-microscope-line"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">显微镜图像</h4>
+                                        <p class="text-xs text-gray-500">细胞、组织切片等显微镜下拍摄的图像</p>
+                                    </div>
+                                </div>
+                                <div class="absolute top-2 right-2 w-4 h-4 rounded-full bg-blue-500"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4 relative hover:border-blue-300 transition">
+                                <input type="radio" name="content-type" class="absolute opacity-0">
+                                <div class="flex items-start">
+                                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mr-3 flex-shrink-0">
+                                        <i class="ri-heart-pulse-line"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">医学影像</h4>
+                                        <p class="text-xs text-gray-500">CT、MRI、X光等医学影像图像</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4 relative hover:border-blue-300 transition">
+                                <input type="radio" name="content-type" class="absolute opacity-0">
+                                <div class="flex items-start">
+                                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mr-3 flex-shrink-0">
+                                        <i class="ri-file-chart-line"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">图表数据</h4>
+                                        <p class="text-xs text-gray-500">实验数据图表、统计可视化图像</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Zone -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium mb-4">上传图像</h3>
+                        <div class="upload-zone rounded-lg p-8 text-center">
+                            <i class="ri-upload-cloud-2-line text-5xl text-gray-400 mb-4"></i>
+                            <h4 class="font-medium mb-2">拖放图像文件至此处或点击上传</h4>
+                            <p class="text-sm text-gray-500 mb-6">支持JPEG、PNG、TIFF、SVS、DICOM等医学图像格式，单文件最大20MB</p>
+                            <button class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                                选择文件
+                            </button>
+                            <input type="file" class="hidden" id="file-upload" accept="image/jpeg,image/png,image/tiff,image/dicom,.svs">
+                        </div>
+                    </div>
+                    
+                    <!-- Search Settings -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <h3 class="text-lg font-medium mb-4">检索范围</h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition">
+                                    <input type="checkbox" class="form-checkbox text-blue-500 rounded h-5 w-5" checked>
+                                    <div class="ml-3">
+                                        <span class="font-medium">学术期刊数据库</span>
+                                        <p class="text-xs text-gray-500">覆盖主要医学期刊发表的论文图像</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition">
+                                    <input type="checkbox" class="form-checkbox text-blue-500 rounded h-5 w-5" checked>
+                                    <div class="ml-3">
+                                        <span class="font-medium">会议论文集</span>
+                                        <p class="text-xs text-gray-500">医学领域国际会议论文集中的图像</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition">
+                                    <input type="checkbox" class="form-checkbox text-blue-500 rounded h-5 w-5" checked>
+                                    <div class="ml-3">
+                                        <span class="font-medium">预印本平台</span>
+                                        <p class="text-xs text-gray-500">medRxiv、bioRxiv等预印本平台</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition">
+                                    <input type="checkbox" class="form-checkbox text-blue-500 rounded h-5 w-5">
+                                    <div class="ml-3">
+                                        <span class="font-medium">本机构内部库</span>
+                                        <p class="text-xs text-gray-500">本机构内部上传的科研图像</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-medium mb-4">检测设置</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-sm font-medium mb-1 block">相似度阈值</label>
+                                    <div class="flex items-center">
+                                        <input type="range" min="50" max="100" value="70" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mr-3" id="similarity-slider">
+                                        <span class="w-12 text-center font-medium" id="similarity-value">70%</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">仅显示相似度高于此阈值的结果</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="text-sm font-medium mb-1 block">检测深度</label>
+                                    <select class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option>标准检测（推荐）</option>
+                                        <option>快速检测</option>
+                                        <option>深度检测</option>
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">深度检测将消耗更多算力但可提高准确率</p>
+                                </div>
+                                
+                                <div>
+                                    <button class="flex items-center text-blue-500 text-sm mb-2" id="advanced-toggle">
+                                        <i class="ri-settings-line mr-1"></i> 高级设置
+                                        <i class="ri-arrow-down-s-line ml-1"></i>
+                                    </button>
+                                    
+                                    <div class="hidden space-y-3 p-4 bg-gray-50 rounded-lg" id="advanced-options">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="form-checkbox text-blue-500 rounded h-4 w-4" checked>
+                                            <span class="ml-2 text-sm">区域局部检测（识别部分相似区域）</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="form-checkbox text-blue-500 rounded h-4 w-4" checked>
+                                            <span class="ml-2 text-sm">忽略对比度与亮度差异</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="form-checkbox text-blue-500 rounded h-4 w-4">
+                                            <span class="ml-2 text-sm">忽略尺寸缩放差异</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="form-checkbox text-blue-500 rounded h-4 w-4">
+                                            <span class="ml-2 text-sm">忽略旋转与镜像</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="form-checkbox text-blue-500 rounded h-4 w-4">
+                                            <span class="ml-2 text-sm">检测裁剪与拼接</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="form-checkbox text-blue-500 rounded h-4 w-4">
+                                            <span class="ml-2 text-sm">检测着色差异（如染色方法不同）</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex justify-center">
+                        <button class="btn-primary px-6 py-2 text-white rounded-lg mr-4" id="start-detection">
+                            开始查重检测
+                        </button>
+                        <button class="btn-secondary px-6 py-2 rounded-lg">
+                            重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Processing Section (Initially Hidden) -->
+        <div class="mb-8 hidden" id="processing-section">
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+                <div class="max-w-2xl mx-auto text-center">
+                    <div class="w-20 h-20 rounded-full gradient-primary mx-auto flex items-center justify-center text-white mb-6">
+                        <i class="ri-loader-2-line text-3xl animate-spin"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">正在进行图像查重分析</h3>
+                    <p class="text-gray-600 mb-8">我们正在对您上传的科研图像进行特征提取与相似度检测，请稍候...</p>
+                    
+                    <!-- Progress Indicators -->
+                    <div class="space-y-4 mb-8 text-left">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>图像预处理</span>
+                                <span>完成</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>特征提取</span>
+                                <span>完成</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>数据库匹配</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden progress-bar">
+                                <div class="h-full bg-blue-500 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>相似度分析</span>
+                                <span>等待中</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gray-400 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>报告生成</span>
+                                <span>等待中</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gray-400 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-sm text-gray-500">
+                        预计剩余时间：<span class="font-medium">45秒</span> | 已扫描数据量：<span class="font-medium">3,245,871 张图像</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section (Initially Hidden) -->
+        <div class="hidden" id="results-section">
+            <!-- Results Header -->
+            <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+                <div class="flex flex-col md:flex-row justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h3 class="text-xl font-bold mb-1">查重检测结果</h3>
+                        <p class="text-sm text-gray-500">检测完成时间：2025-04-30 14:25:36</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button class="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            <i class="ri-download-line mr-2"></i>
+                            <span>导出报告</span>
+                        </button>
+                        <button class="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            <i class="ri-share-line mr-2"></i>
+                            <span>分享报告</span>
+                        </button>
+                        <button class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                            <i class="ri-file-paper-2-line mr-2"></i>
+                            <span>生成证明</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm">
+                    <h4 class="text-lg font-medium mb-4">查重总览</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-500">检测库容量</span>
+                                <span class="font-medium">8,745,321 张</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-500">已分析图像</span>
+                                <span class="font-medium">3,245,871 张</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-500">发现相似图像</span>
+                                <span class="font-medium">3 张</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">最高相似度</span>
+                                <span class="font-medium text-red-500">92%</span>
+                            </div>
+                        </div>
+                        <div class="h-px bg-gray-200"></div>
+                        <div>
+                            <div class="text-sm text-gray-500 mb-2">相似度分布</div>
+                            <div class="flex items-center mb-2">
+                                <div class="w-full h-8 bg-gray-100 rounded-lg overflow-hidden flex">
+                                    <div class="h-full bg-red-500" style="width: 20%"></div>
+                                    <div class="h-full bg-yellow-500" style="width: 10%"></div>
+                                    <div class="h-full bg-green-500" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 bg-red-500 rounded-sm inline-block mr-1"></span>
+                                    <span>高 (80-100%)</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 bg-yellow-500 rounded-sm inline-block mr-1"></span>
+                                    <span>中 (60-80%)</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-3 h-3 bg-green-500 rounded-sm inline-block mr-1"></span>
+                                    <span>低 (≤60%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-sm">
+                    <h4 class="text-lg font-medium mb-4">查重结论</h4>
+                    <div class="p-4 border border-red-200 bg-red-50 rounded-lg mb-4">
+                        <div class="flex items-center mb-2">
+                            <i class="ri-error-warning-line text-red-500 mr-2 text-lg"></i>
+                            <h5 class="font-medium text-red-700">发现高度相似图像</h5>
+                        </div>
+                        <p class="text-sm text-gray-700">根据检测结果，发现至少1张高度相似(≥80%)的图像，可能存在图像重复使用情况，建议进一步核查。</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="text-sm font-medium mb-1">相似图像来源分布</div>
+                            <div class="grid grid-cols-3 gap-2 text-xs text-center">
+                                <div class="bg-blue-50 p-2 rounded">
+                                    <div class="font-medium text-blue-500 mb-1">期刊</div>
+                                    <div>2 张</div>
+                                </div>
+                                <div class="bg-blue-50 p-2 rounded">
+                                    <div class="font-medium text-blue-500 mb-1">会议</div>
+                                    <div>1 张</div>
+                                </div>
+                                <div class="bg-blue-50 p-2 rounded">
+                                    <div class="font-medium text-blue-500 mb-1">预印本</div>
+                                    <div>0 张</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium mb-1">日期分布</div>
+                            <div class="text-xs text-gray-500">最早相似图像发表于 2023-06-15</div>
+                            <div class="text-xs text-gray-500">最近相似图像发表于 2024-11-30</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-sm">
+                    <h4 class="text-lg font-medium mb-4">您的图像</h4>
+                    <div class="aspect-w-4 aspect-h-3 mb-4">
+                        <div class="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                            <!-- 示意图 - 实际项目中替换为真实图像 -->
+                            <svg viewBox="0 0 200 150" class="w-full h-full">
+                                <rect width="200" height="150" fill="#f3f4f6"/>
+                                <circle cx="100" cy="75" r="30" fill="#d1d5db"/>
+                                <rect x="120" y="60" width="30" height="30" fill="#9ca3af"/>
+                                <ellipse cx="70" cy="80" rx="20" ry="15" fill="#9ca3af"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">文件名称</span>
+                            <span class="font-medium">microscopy_figure1.tif</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">图像尺寸</span>
+                            <span class="font-medium">1280 x 960 px</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">文件大小</span>
+                            <span class="font-medium">4.2 MB</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">格式类型</span>
+                            <span class="font-medium">TIFF</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">上传时间</span>
+                            <span class="font-medium">2025-04-30 14:20:12</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Similarity Results -->
+            <div class="bg-white rounded-xl shadow-sm mb-6">
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-lg font-medium">相似图像列表</h4>
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 mr-2">排序方式</span>
+                                <select class="text-sm border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                                    <option>相似度降序</option>
+                                    <option>相似度升序</option>
+                                    <option>日期降序</option>
+                                    <option>日期升序</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 mr-2">相似度筛选</span>
+                                <select class="text-sm border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                                    <option>全部</option>
+                                    <option>高 (≥80%)</option>
+                                    <option>中 (60-80%)</option>
+                                    <option>低 (≤60%)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Result Item 1 -->
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex flex-col md:flex-row">
+                        <div class="md:w-1/4 mb-4 md:mb-0 md:pr-6">
+                            <div class="aspect-w-4 aspect-h-3 mb-2">
+                                <div class="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                                    <!-- 示意图 - 实际项目中替换为相似图像 -->
+                                    <svg viewBox="0 0 200 150" class="w-full h-full">
+                                        <rect width="200" height="150" fill="#f3f4f6"/>
+                                        <circle cx="100" cy="75" r="30" fill="#d1d5db"/>
+                                        <rect x="120" y="60" width="30" height="30" fill="#9ca3af"/>
+                                        <ellipse cx="70" cy="80" rx="20" ry="15" fill="#9ca3af"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-red-500">92%</div>
+                                <div class="text-sm text-gray-500">相似度</div>
+                            </div>
+                        </div>
+                        <div class="md:w-3/4">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h5 class="text-lg font-medium mb-1">Cell signaling pathways in human tissue samples</h5>
+                                    <p class="text-sm text-gray-600">Journal of Cellular Biology, Vol 45, Issue 3, pp. 284-291</p>
+                                    <div class="flex items-center mt-1">
+                                        <span class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-xs mr-2">高度相似</span>
+                                        <span class="text-sm text-gray-500">发表日期: 2024-11-30</span>
+                                    </div>
+                                </div>
+                                <button class="px-2 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition">
+                                    <i class="ri-arrow-down-s-line"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex mb-2">
+                                    <div class="w-1/2 pr-2">
+                                        <div class="text-sm font-medium">作者</div>
+                                        <div class="text-sm text-gray-600">Zhang, L., Wang, H., Smith, J. et al.</div>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <div class="text-sm font-medium">机构</div>
+                                        <div class="text-sm text-gray-600">National Institute of Medical Research</div>
+                                    </div>
+                                </div>
+                                <div class="flex">
+                                    <div class="w-1/2 pr-2">
+                                        <div class="text-sm font-medium">DOI</div>
+                                        <div class="text-sm text-gray-600">10.1038/s41586-024-4812-5</div>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <div class="text-sm font-medium">图像位置</div>
+                                        <div class="text-sm text-gray-600">Figure 2B, Page 286</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <button class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">
+                                    查看详细对比
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    热力图分析
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    查看原文
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    添加备注
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Result Item 2 -->
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex flex-col md:flex-row">
+                        <div class="md:w-1/4 mb-4 md:mb-0 md:pr-6">
+                            <div class="aspect-w-4 aspect-h-3 mb-2">
+                                <div class="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                                    <!-- 示意图 - 实际项目中替换为相似图像 -->
+                                    <svg viewBox="0 0 200 150" class="w-full h-full">
+                                        <rect width="200" height="150" fill="#f3f4f6"/>
+                                        <circle cx="105" cy="70" r="25" fill="#d1d5db"/>
+                                        <rect x="125" y="55" width="25" height="30" fill="#9ca3af"/>
+                                        <ellipse cx="75" cy="85" rx="15" ry="15" fill="#9ca3af"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-yellow-500">76%</div>
+                                <div class="text-sm text-gray-500">相似度</div>
+                            </div>
+                        </div>
+                        <div class="md:w-3/4">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h5 class="text-lg font-medium mb-1">Novel approaches to tissue analysis using microscopy</h5>
+                                    <p class="text-sm text-gray-600">International Conference on Medical Imaging, Proceedings pp. 145-152</p>
+                                    <div class="flex items-center mt-1">
+                                        <span class="px-2 py-0.5 bg-yellow-100 text-yellow-600 rounded text-xs mr-2">中度相似</span>
+                                        <span class="text-sm text-gray-500">发表日期: 2024-04-22</span>
+                                    </div>
+                                </div>
+                                <button class="px-2 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition">
+                                    <i class="ri-arrow-down-s-line"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex mb-2">
+                                    <div class="w-1/2 pr-2">
+                                        <div class="text-sm font-medium">作者</div>
+                                        <div class="text-sm text-gray-600">Chen, Y., Peterson, K., Harris, T.</div>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <div class="text-sm font-medium">机构</div>
+                                        <div class="text-sm text-gray-600">Medical Research Institute, University Hospital</div>
+                                    </div>
+                                </div>
+                                <div class="flex">
+                                    <div class="w-1/2 pr-2">
+                                        <div class="text-sm font-medium">会议信息</div>
+                                        <div class="text-sm text-gray-600">ICMI 2024, Boston, USA</div>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <div class="text-sm font-medium">图像位置</div>
+                                        <div class="text-sm text-gray-600">Figure 3, Page 147</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <button class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">
+                                    查看详细对比
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    热力图分析
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    查看原文
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    添加备注
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Result Item 3 -->
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row">
+                        <div class="md:w-1/4 mb-4 md:mb-0 md:pr-6">
+                            <div class="aspect-w-4 aspect-h-3 mb-2">
+                                <div class="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                                    <!-- 示意图 - 实际项目中替换为相似图像 -->
+                                    <svg viewBox="0 0 200 150" class="w-full h-full">
+                                        <rect width="200" height="150" fill="#f3f4f6"/>
+                                        <circle cx="110" cy="65" r="30" fill="#d1d5db"/>
+                                        <rect x="130" y="70" width="30" height="20" fill="#9ca3af"/>
+                                        <ellipse cx="60" cy="90" rx="25" ry="15" fill="#9ca3af"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-500">63%</div>
+                                <div class="text-sm text-gray-500">相似度</div>
+                            </div>
+                        </div>
+                        <div class="md:w-3/4">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h5 class="text-lg font-medium mb-1">Advances in microscopy techniques for medical diagnosis</h5>
+                                    <p class="text-sm text-gray-600">Medical Imaging Journal, Vol 28, Issue 2, pp. 112-119</p>
+                                    <div class="flex items-center mt-1">
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-600 rounded text-xs mr-2">低度相似</span>
+                                        <span class="text-sm text-gray-500">发表日期: 2023-06-15</span>
+                                    </div>
+                                </div>
+                                <button class="px-2 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition">
+                                    <i class="ri-arrow-down-s-line"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex mb-2">
+                                    <div class="w-1/2 pr-2">
+                                        <div class="text-sm font-medium">作者</div>
+                                        <div class="text-sm text-gray-600">Rodriguez, M., Kim, J., Singh, A.</div>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <div class="text-sm font-medium">机构</div>
+                                        <div class="text-sm text-gray-600">Department of Pathology, University Medical Center</div>
+                                    </div>
+                                </div>
+                                <div class="flex">
+                                    <div class="w-1/2 pr-2">
+                                        <div class="text-sm font-medium">DOI</div>
+                                        <div class="text-sm text-gray-600">10.1042/mij.2023.06234</div>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <div class="text-sm font-medium">图像位置</div>
+                                        <div class="text-sm text-gray-600">Figure 5A, Page 115</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <button class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">
+                                    查看详细对比
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    热力图分析
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    查看原文
+                                </button>
+                                <button class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
+                                    添加备注
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed Analysis Example -->
+            <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+                <h4 class="text-lg font-medium mb-4">相似区域热力图分析</h4>
+                <p class="text-sm text-gray-600 mb-4">下图显示了与"Cell signaling pathways in human tissue samples"论文中图像的相似区域对比分析，红色区域表示高度相似。</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                        <div class="aspect-w-4 aspect-h-3 mb-2">
+                            <div class="w-full h-full bg-gray-100 rounded overflow-hidden relative">
+                                <!-- 示意图 - 实际项目中替换为热力图 -->
+                                <svg viewBox="0 0 400 300" class="w-full h-full">
+                                    <rect width="400" height="300" fill="#f3f4f6"/>
+                                    <circle cx="200" cy="150" r="60" fill="#d1d5db"/>
+                                    <rect x="240" y="120" width="60" height="60" fill="#9ca3af"/>
+                                    <ellipse cx="140" cy="160" rx="40" ry="30" fill="#9ca3af"/>
+                                    <!-- 热力图高亮区域 -->
+                                    <circle cx="200" cy="150" r="65" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="5,3"/>
+                                    <circle cx="200" cy="150" r="60" fill="#ef444425"/>
+                                </svg>
+                                <div class="absolute bottom-2 right-2 px-2 py-1 bg-white bg-opacity-75 rounded text-xs">原图</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="aspect-w-4 aspect-h-3 mb-2">
+                            <div class="w-full h-full bg-gray-100 rounded overflow-hidden relative">
+                                <!-- 示意图 - 实际项目中替换为热力图 -->
+                                <svg viewBox="0 0 400 300" class="w-full h-full">
+                                    <rect width="400" height="300" fill="#f3f4f6"/>
+                                    <circle cx="200" cy="150" r="60" fill="#d1d5db"/>
+                                    <rect x="240" y="120" width="60" height="60" fill="#9ca3af"/>
+                                    <ellipse cx="140" cy="160" rx="40" ry="30" fill="#9ca3af"/>
+                                    <!-- 热力图效果 -->
+                                    <radialGradient id="heatmap" cx="200" cy="150" r="70" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#ef4444" stop-opacity="0.7"/>
+                                        <stop offset="60%" stop-color="#ef4444" stop-opacity="0.1"/>
+                                        <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+                                    </radialGradient>
+                                    <circle cx="200" cy="150" r="70" fill="url(#heatmap)"/>
+                                </svg>
+                                <div class="absolute bottom-2 right-2 px-2 py-1 bg-white bg-opacity-75 rounded text-xs">热力图</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h5 class="font-medium mb-2">分析结论</h5>
+                    <p class="text-sm text-gray-700 mb-4">根据热力图分析，中央细胞结构区域(占比约58%)存在高度相似，可能是相同样本或相似处理方法。边缘区域的相似性较低，显示一定的处理差异。</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <div class="flex justify-between mb-1">
+                                <span>高相似区域</span>
+                                <span class="font-medium">58%</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-red-500 rounded-full" style="width: 58%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <div class="flex justify-between mb-1">
+                                <span>中相似区域</span>
+                                <span class="font-medium">22%</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-yellow-500 rounded-full" style="width: 22%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <div class="flex justify-between mb-1">
+                                <span>低相似区域</span>
+                                <span class="font-medium">20%</span>
+                            </div>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500 rounded-full" style="width: 20%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendations -->
+            <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+                <h4 class="text-lg font-medium mb-4">专业建议</h4>
+                <div class="space-y-4">
+                    <div class="flex">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 mr-4 flex-shrink-0">
+                            <i class="ri-error-warning-line"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-medium mb-1">存在潜在的图像重复使用风险</h5>
+                            <p class="text-sm text-gray-600">检测到与已发表论文中的图像高度相似(92%)，建议对比原始实验数据并确认图像来源。如果需要使用相似图像，请确保适当引用或说明图像复用情况。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-4 flex-shrink-0">
+                            <i class="ri-information-line"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-medium mb-1">建议进一步核查</h5>
+                            <p class="text-sm text-gray-600">如果您的研究与"Cell signaling pathways in human tissue samples"论文相关，建议查阅原论文以确认是否有关联或合作关系。同时检查实验记录，确认图像是否来自独立实验。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-4 flex-shrink-0">
+                            <i class="ri-lightbulb-line"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-medium mb-1">后续行动建议</h5>
+                            <p class="text-sm text-gray-600">1. 导出完整报告并保存，作为图像溯源记录；<br>2. 联系相关论文作者澄清图像使用情况；<br>3. 如确认为独立实验图像，建议在投稿时附上查重报告，说明相似情况。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <h4 class="text-xl font-bold mb-2">完成查重，导出报告</h4>
+                        <p>保存完整查重报告，以便未来参考或作为投稿附件</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button class="px-5 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium">
+                            <i class="ri-download-line mr-1"></i> PDF格式
+                        </button>
+                        <button class="px-5 py-2 bg-blue-600 text-white border border-white rounded-lg hover:bg-blue-700 transition font-medium">
+                            <i class="ri-file-word-line mr-1"></i> Word格式
+                        </button>
+                        <button class="px-5 py-2 bg-blue-600 text-white border border-white rounded-lg hover:bg-blue-700 transition font-medium">
+                            <i class="ri-mail-line mr-1"></i> 邮件发送
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center text-white">
+                            <i class="ri-microscope-line"></i>
+                        </div>
+                        <h3 class="text-lg font-bold">科研图片查重检索系统</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">为医护科研人员提供专业的图像查重服务，助力学术诚信与科研创新</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">产品与服务</h3>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-blue-300 transition">图像查重</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">批量检测</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">API接口服务</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">机构解决方案</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">学术期刊合作</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">资源中心</h3>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-blue-300 transition">使用指南</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">常见问题</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">技术文档</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">学术诚信指南</a></li>
+                        <li><a href="#" class="hover:text-blue-300 transition">图像伦理规范</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">联系我们</h3>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li class="flex items-center">
+                            <i class="ri-mail-line mr-2"></i>
+                            <span>support@medical-imagesearch.com</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="ri-phone-line mr-2"></i>
+                            <span>400-123-4567</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="ri-map-pin-line mr-2"></i>
+                            <span>北京市海淀区医疗科技园B座501</span>
+                        </li>
+                    </ul>
+                    <div class="flex space-x-3 mt-4">
+                        <a href="#" class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center hover:bg-blue-600 transition">
+                            <i class="ri-wechat-line"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center hover:bg-blue-600 transition">
+                            <i class="ri-weibo-line"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center hover:bg-blue-600 transition">
+                            <i class="ri-mail-line"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">
+                <p>&copy; 2025 科研图片查重检索系统 - 专注医学科研图像查重 | 京ICP备XXXXXXXX号</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle Advanced Options
+            const advancedToggle = document.getElementById('advanced-toggle');
+            const advancedOptions = document.getElementById('advanced-options');
+            
+            advancedToggle.addEventListener('click', function() {
+                advancedOptions.classList.toggle('hidden');
+                const icon = this.querySelector('.ri-arrow-down-s-line');
+                if (icon.classList.contains('ri-arrow-down-s-line')) {
+                    icon.classList.replace('ri-arrow-down-s-line', 'ri-arrow-up-s-line');
+                } else {
+                    icon.classList.replace('ri-arrow-up-s-line', 'ri-arrow-down-s-line');
+                }
+            });
+            
+            // Similarity Slider
+            const similaritySlider = document.getElementById('similarity-slider');
+            const similarityValue = document.getElementById('similarity-value');
+            
+            similaritySlider.addEventListener('input', function() {
+                similarityValue.textContent = this.value + '%';
+            });
+            
+            // Upload Zone Drag & Drop
+            const uploadZone = document.querySelector('.upload-zone');
+            const fileUpload = document.getElementById('file-upload');
+            
+            uploadZone.addEventListener('click', function() {
+                fileUpload.click();
+            });
+            
+            uploadZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            uploadZone.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+            
+            uploadZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                // 在实际应用中，这里处理文件上传
+                // const files = e.dataTransfer.files;
+                // handleFileUpload(files);
+            });
+            
+            // Section Navigation (for demo purposes)
+            const startDetectionBtn = document.getElementById('start-detection');
+            const uploadSection = document.getElementById('upload-section');
+            const processingSection = document.getElementById('processing-section');
+            const resultsSection = document.getElementById('results-section');
+            
+            startDetectionBtn.addEventListener('click', function() {
+                uploadSection.classList.add('hidden');
+                processingSection.classList.remove('hidden');
+                
+                // 模拟处理完成后显示结果
+                setTimeout(function() {
+                    processingSection.classList.add('hidden');
+                    resultsSection.classList.remove('hidden');
+                    
+                    // 更新进度指示器
+                    document.querySelectorAll('.steps-container .w-16 div').forEach(bar => {
+                        bar.style.width = '100%';
+                    });
+                    
+                    document.querySelectorAll('.steps-container .rounded-full')[1].classList.remove('bg-gray-200', 'text-gray-500');
+                    document.querySelectorAll('.steps-container .rounded-full')[1].classList.add('bg-blue-500', 'text-white');
+                    document.querySelectorAll('.steps-container .rounded-full')[2].classList.remove('bg-gray-200', 'text-gray-500');
+                    document.querySelectorAll('.steps-container .rounded-full')[2].classList.add('bg-blue-500', 'text-white');
+                    
+                    document.querySelectorAll('.steps-container .text-gray-500 h3').forEach(text => {
+                        text.classList.remove('text-gray-500');
+                    });
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
